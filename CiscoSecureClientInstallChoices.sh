@@ -12,16 +12,19 @@
 #
 #	The Following Variables should be defined
 #	Variable 4 - Named "Choice File Name - eg. anyconnect_choices.xml"
-#	Variable 5 - Named "Install Choices - eg. 1 0 1 0 0 0 0 0 0 0"
-#	Variable 6 - Named "INFO - Choices are : vpn fireamp dart posture iseposture nvm umbrella ThousandEyes Duo ZTA. ALL must have a value, seperated by a SPACE
+#	Variable 5 - Named "Install Choices - eg. 1 0 1 0 0 0 0 0 0 0 0 1"
+#	Variable 6 - Named "INFO - Choices are : vpn fireamp dart posture iseposture nvm umbrella ThousandEyes Duo ZTA UI. ALL must have a value, seperated by a SPACE
 #
 ###############################################################################################################################################
 #
 # HISTORY
 #
-#   Version: 1.0 - 08/10/2025
+#   Version: 1.1 - 21/10/2026
 #
 #	08/10/2025 - V1.0 - Created by Headbolt, mod/update of https://github.com/Headbolt/CiscoAnyConnectProfile
+#
+#	21/10/2026 - V1.1 - Updated by Headbolt
+#                              Updated to work with newer Client Versions that now Include an option for DLP and the UI 
 #
 ###############################################################################################################################################
 #
@@ -29,12 +32,12 @@
 #
 ###############################################################################################################################################
 #
-ScriptVer=v1.0
+ScriptVer=v1.1
 ScriptName="Application | SecureClient | Choice File"
 ExitCode=0
 #
 ChoiceFileName=$4 # Grab the Download Choice File Name from JAMF variable #4 eg. anyconnect_choices.xml
-InstallChoices=$5 # Grab the Install Choices from JAMF variable #5 eg. 1 0 1 0 0 0 0 0 0 0
+InstallChoices=$5 # Grab the Install Choices from JAMF variable #5 eg. 1 0 1 0 0 0 0 0 0 0 0 1
 #
 vpnEnabled=$( /bin/echo $InstallChoices | awk '{print $1}' ) # Split vpninstall choice out from the string in the InstallChoices Variable
 fireampEnabled=$( /bin/echo $InstallChoices | awk '{print $2}' ) # Split fireampinstall choice out from the string in the InstallChoices Variable
@@ -46,6 +49,8 @@ umbrellaEnabled=$( /bin/echo $InstallChoices | awk '{print $7}' ) # Split umbrel
 ThousandEyesEnabled=$( /bin/echo $InstallChoices | awk '{print $8}' ) # Split thousandeyesinstall choice out from the string in the InstallChoices Variable
 DuoEnabled=$( /bin/echo $InstallChoices | awk '{print $9}' ) # Split duoinstall choice out from the string in the InstallChoices Variable
 ztaEnabled=$( /bin/echo $InstallChoices | awk '{print $10}' ) # Split ztainstall choice out from the string in the InstallChoices Variable
+dlpEnabled=$( /bin/echo $InstallChoices | awk '{print $11}' ) # Split dlpinstall choice out from the string in the InstallChoices Variable
+uiEnabled=$( /bin/echo $InstallChoices | awk '{print $12}' ) # Split UIinstall choice out from the string in the InstallChoices Variable
 #
 WaitingRoomFolder="/Library/Application Support/JAMF/Waiting Room"
 #
@@ -225,6 +230,22 @@ ReWriteChoiceFile(){
 /bin/echo '		<key>choiceIdentifier</key>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
 /bin/echo '		<string>choice_zta</string>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
 /bin/echo '	</dict>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
+/bin/echo '	<dict>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
+/bin/echo '		<key>attributeSetting</key>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
+/bin/echo '		<integer>'$dlpEnabled'</integer>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
+/bin/echo '		<key>choiceAttribute</key>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
+/bin/echo '		<string>selected</string>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
+/bin/echo '		<key>choiceIdentifier</key>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
+/bin/echo '		<string>choice_edlp</string>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
+/bin/echo '	</dict>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
+/bin/echo '	<dict>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
+/bin/echo '		<key>attributeSetting</key>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
+/bin/echo '		<integer>'$uiEnabled'</integer>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
+/bin/echo '		<key>choiceAttribute</key>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
+/bin/echo '		<string>selected</string>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
+/bin/echo '		<key>choiceIdentifier</key>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
+/bin/echo '		<string>choice_ui</string>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
+/bin/echo '	</dict>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
 /bin/echo '</array>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
 /bin/echo '</plist>' >> "$WaitingRoomFolder"/"$ChoiceFileName"
 #
@@ -332,6 +353,16 @@ SectionEnd
 #
 Var2Check='ztaEnabled'
 VarValue=$ztaEnabled
+VarCheck
+SectionEnd
+#
+Var2Check='dlpEnabled'
+VarValue=$dlpEnabled
+VarCheck
+SectionEnd
+#
+Var2Check='uiEnabled'
+VarValue=$uiEnabled
 VarCheck
 SectionEnd
 #
